@@ -1,0 +1,49 @@
+---
+title: "Zaawansowana Eksploracja Danych - Projekt 1"
+author: "Wojciech Przybylski"
+date: "`r format(Sys.time(), '%d-%m-%Y')`"
+output: 
+  html_document:
+    toc: yes
+    toc_float: yes
+---
+
+```{r global_settings, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, results='hide', message=FALSE, warning=FALSE, error=FALSE)
+```
+
+# Podsumowanie
+
+---
+todo
+---
+
+# Opis zbioru danych
+
+```{r libs, include=FALSE}
+library(dplyr)
+```
+
+### Oryginalne dane
+
+---
+todo: wczytanie danych
+---
+
+### Czyszczenie danych
+
+---
+todo: czyszczenie danych
+---
+
+# Zależności między atrybutami
+
+---
+todo
+---
+
+# Klasyfikator
+
+---
+todo
+---
