@@ -12,26 +12,22 @@ output:
 knitr::opts_chunk$set(echo = FALSE, results='hide', message=FALSE, warning=FALSE, error=FALSE)
 ```
 
-# Podsumowanie
+## Podsumowanie
 
 ---
 todo
 ---
 
-# Opis zbioru danych
+## Opis zbioru danych
 
 ```{r libs, include=FALSE}
 library(dplyr)
 library(xlsx)
+library(ggplot2)
+library(plotly)
 ```
 
 Dane zawierają informacje o wynikach badań krwi pacjentów chorych na COVID-19, przyjętych do szpitala Tongji w Wuhan (Chiny). Zebrane zostały między 10 stycznia a 18 lutego 2020 roku.
-
----
-todo: krótki opis co to za zbiór
----
-
-### Oryginalne dane
 
 ```{r load_data, include=FALSE, cache=TRUE}
 blood_test <- read.xlsx('wuhan_blood_sample_data_Jan_Feb_2020.xlsx', 1, header=TRUE)
@@ -123,31 +119,45 @@ Wczytane dane zawierają `r nrow(blood_test)` wierszy opisanych przez `r ncol(bl
 |`r colnames(blood_test[80])`|eGFR [ml/min/1.73m<sup>2</sup>]|
 |`r colnames(blood_test[81])`|stężenie kreatyniny [μmol/l]|
 
-### Czyszczenie danych
-
 ```{r clean_data, include=FALSE}
 # fill patient IDs
+counter <- 0
 for(i in 1:nrow(blood_test)) {
     if (!is.na(blood_test[i,1])) {
         j = blood_test[i,1]
     }
     else {
         blood_test[i,1] = j
+        counter = counter + 1
     }
 }
+
+
+blood_test$gender <- as.factor(blood_test$gender)
+blood_test$outcome <- as.factor(blood_test$outcome)
 ```
 
----
-todo: czyszczenie danych
----
+W procesie czyszczenia danych uzupełnione zostały brakujące wartości ID pacjentów. Uzupełniono w ten sposób `r counter` wierszy danych.
 
-# Zależności między atrybutami
+Ponadto, zmieniono typ kolumn gender i outcome z numerycznego na kategoryczny.
 
----
-todo
----
+## Zależności między atrybutami
 
-# Klasyfikator
+```{r group_by, include=FALSE}
+# group by patient IDs
+blood_test_grouped <- blood_test %>% group_by(PATIENT_ID)
+```
+
+Poniżej zaprezentowano krótkie podsumowanie dotyczące analizowanych danych.
+
+```{r gender_summary, results='markup'}
+gender_age_survived_summary <- blood_test_grouped %>% summarize(age = first(age), gender=first(gender), outcome=first(outcome)) %>% mutate(age_group = factor(1*(age > 35) + 1*(age > 55), labels = c('18-35', '36-55', '56+'))) %>% mutate(gender = if_else(condition = gender == 1, 'female', 'male')) %>% mutate(survived = if_else(condition = outcome == 0, 'yes', 'no')) %>% group_by(gender, age_group, survived) %>% count(name = 'count')
+
+summary_plot <- ggplot(gender_age_survived_summary, aes(x = gender, y = count, fill = survived)) + geom_col(width = 0.4) + facet_grid(. ~ age_group)
+ggplotly(summary_plot)
+```
+
+## Klasyfikator
 
 ---
 todo
