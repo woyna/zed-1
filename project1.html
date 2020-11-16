@@ -1559,7 +1559,7 @@ div.tocify {
 
 <h1 class="title toc-ignore">Zaawansowana Eksploracja Danych - Projekt 1</h1>
 <h4 class="author">Wojciech Przybylski</h4>
-<h4 class="date">14-11-2020</h4>
+<h4 class="date">16-11-2020</h4>
 
 </div>
 
@@ -1569,8 +1569,348 @@ div.tocify {
 </div>
 <div id="opis-zbioru-danych" class="section level1">
 <h1>Opis zbioru danych</h1>
+<p>Dane zawierają informacje o wynikach badań krwi pacjentów chorych na COVID-19, przyjętych do szpitala Tongji w Wuhan (Chiny). Zebrane zostały między 10 stycznia a 18 lutego 2020 roku.</p>
 <div id="oryginalne-dane" class="section level3">
 <h3>Oryginalne dane</h3>
+<p>Wczytane dane zawierają 6120 wierszy opisanych przez 81 atrybutów. Poniżej znajduje się krótki opis każdego atrybutu.</p>
+<table>
+<colgroup>
+<col width="50%"></col>
+<col width="50%"></col>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Nazwa atrybutu</th>
+<th>Komentarz</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>PATIENT_ID</td>
+<td>identyfikator pacjenta</td>
+</tr>
+<tr class="even">
+<td>RE_DATE</td>
+<td>data i czas zebrania pomiaru</td>
+</tr>
+<tr class="odd">
+<td>age</td>
+<td>wiek pacjenta</td>
+</tr>
+<tr class="even">
+<td>gender</td>
+<td>płeć pacjenta (1 - kobieta, 2 - mężczyzna)</td>
+</tr>
+<tr class="odd">
+<td>Admission.time</td>
+<td>data i czas przyjęcia pacjenta</td>
+</tr>
+<tr class="even">
+<td>Discharge.time</td>
+<td>data i czas wypisania pacjenta</td>
+</tr>
+<tr class="odd">
+<td>outcome</td>
+<td>czy zmarł? (0 - nie, 1 - tak)</td>
+</tr>
+<tr class="even">
+<td>Hypersensitive.cardiac.troponinI</td>
+<td>stężenie troponiny sercowej [ng/l]</td>
+</tr>
+<tr class="odd">
+<td>hemoglobin</td>
+<td>stężenie hemoglobiny [g/l]</td>
+</tr>
+<tr class="even">
+<td>Serum.chloride</td>
+<td>stężenie chlorków [mmol/l]</td>
+</tr>
+<tr class="odd">
+<td>Prothrombin.time</td>
+<td>czas protrombinowy [s]</td>
+</tr>
+<tr class="even">
+<td>procalcitonin</td>
+<td>stężenie prokalcytoniny [ng/ml]</td>
+</tr>
+<tr class="odd">
+<td>eosinophils…</td>
+<td>zawartość eozynofili [%]</td>
+</tr>
+<tr class="even">
+<td>Interleukin.2.receptor</td>
+<td>stężenie interleukiny-2 [pg/ml]</td>
+</tr>
+<tr class="odd">
+<td>Alkaline.phosphatase</td>
+<td>stężenie fosfatazy alkalicznej [U/l]</td>
+</tr>
+<tr class="even">
+<td>albumin</td>
+<td>stężenie albuminy [g/l]</td>
+</tr>
+<tr class="odd">
+<td>basophil…</td>
+<td>zawartość bazofili [%]</td>
+</tr>
+<tr class="even">
+<td>Interleukin.10</td>
+<td>stężenie interleukiny-10 [pg/ml]</td>
+</tr>
+<tr class="odd">
+<td>Total.bilirubin</td>
+<td>bilirubina całkowita [µmol/l]</td>
+</tr>
+<tr class="even">
+<td>Platelet.count</td>
+<td>liczba płytek krwi [10<sup>3</sup>/µl]</td>
+</tr>
+<tr class="odd">
+<td>monocytes…</td>
+<td>zawartość monocytów [%]</td>
+</tr>
+<tr class="even">
+<td>antithrombin</td>
+<td>aktywność antytrombiny [% normy]</td>
+</tr>
+<tr class="odd">
+<td>Interleukin.8</td>
+<td>stężenie interleukiny-8 [pg/ml]</td>
+</tr>
+<tr class="even">
+<td>indirect.bilirubin</td>
+<td>bilirubina pośrednia [µmol/l]</td>
+</tr>
+<tr class="odd">
+<td>Red.blood.cell.distribution.width.</td>
+<td>RDW-CV [%]</td>
+</tr>
+<tr class="even">
+<td>neutrophils…</td>
+<td>zawartość neutrofili [%]</td>
+</tr>
+<tr class="odd">
+<td>total.protein</td>
+<td>stężenie białka całkowitego [g/l]</td>
+</tr>
+<tr class="even">
+<td>Quantification.of.Treponema.pallidum.antibodies</td>
+<td>przeciwciała kiły IgG/IgM</td>
+</tr>
+<tr class="odd">
+<td>Prothrombin.activity</td>
+<td>aktywność protrombiny [% normy]</td>
+</tr>
+<tr class="even">
+<td>HBsAg</td>
+<td>HBsAg [s/c]</td>
+</tr>
+<tr class="odd">
+<td>mean.corpuscular.volume</td>
+<td>średnia objętość krwinki czerwonej (MCV) [fl]</td>
+</tr>
+<tr class="even">
+<td>hematocrit</td>
+<td>hematokryt [%]</td>
+</tr>
+<tr class="odd">
+<td>White.blood.cell.count</td>
+<td>liczba krwinek białych [10<sup>9</sup>/l]</td>
+</tr>
+<tr class="even">
+<td>Tumor.necrosis.factorÎ.</td>
+<td>TNF alfa [pg/ml]</td>
+</tr>
+<tr class="odd">
+<td>mean.corpuscular.hemoglobin.concentration</td>
+<td>średnie stężenie hemoglobiny w erytrocytach [g/l]</td>
+</tr>
+<tr class="even">
+<td>fibrinogen</td>
+<td>fibrynogen [g/l]</td>
+</tr>
+<tr class="odd">
+<td>Interleukin.1Î.</td>
+<td>stężenie interleukiny-1β [pg/ml]</td>
+</tr>
+<tr class="even">
+<td>Urea</td>
+<td>stężenie mocznika [mmol/l]</td>
+</tr>
+<tr class="odd">
+<td>lymphocyte.count</td>
+<td>liczba limfocytów [10<sup>9</sup>/l]</td>
+</tr>
+<tr class="even">
+<td>PH.value</td>
+<td>pH</td>
+</tr>
+<tr class="odd">
+<td>Red.blood.cell.count</td>
+<td>liczba krwinek czerwonych [10<sup>12</sup>/l]</td>
+</tr>
+<tr class="even">
+<td>Eosinophil.count</td>
+<td>zawartość eozynofili</td>
+</tr>
+<tr class="odd">
+<td>Corrected.calcium</td>
+<td>skorygowane stężenie wapnia [mg/dl]</td>
+</tr>
+<tr class="even">
+<td>Serum.potassium</td>
+<td>stężenie potasu [mmol/l]</td>
+</tr>
+<tr class="odd">
+<td>glucose</td>
+<td>stężenie glukozy [mmol/l]</td>
+</tr>
+<tr class="even">
+<td>neutrophils.count</td>
+<td>liczba neutrofili [10<sup>3</sup>/µl]</td>
+</tr>
+<tr class="odd">
+<td>Direct.bilirubin</td>
+<td>bilirubina bezpośrednia [µmol/l]</td>
+</tr>
+<tr class="even">
+<td>Mean.platelet.volume</td>
+<td>średnia objętość płytek krwi [fl]</td>
+</tr>
+<tr class="odd">
+<td>ferritin</td>
+<td>stężenie ferrytyny [μg/l]</td>
+</tr>
+<tr class="even">
+<td>RBC.distribution.width.SD</td>
+<td>rozpiętość rozkładu objętości erytrocytów pacjenta [%]</td>
+</tr>
+<tr class="odd">
+<td>Thrombin.time</td>
+<td>czas trombinowy [s]</td>
+</tr>
+<tr class="even">
+<td>X…lymphocyte</td>
+<td>zawartość limfocytów [%]</td>
+</tr>
+<tr class="odd">
+<td>HCV.antibody.quantification</td>
+<td>przeciwciała HCV [log IU/ml]</td>
+</tr>
+<tr class="even">
+<td>D.D.dimer</td>
+<td>stężenie D-dimerów [ng/ml]</td>
+</tr>
+<tr class="odd">
+<td>Total.cholesterol</td>
+<td>cholesterol całkowity [mmol/l]</td>
+</tr>
+<tr class="even">
+<td>aspartate.aminotransferase</td>
+<td>poziom aminotransferazy asparaginianowej (U/l)</td>
+</tr>
+<tr class="odd">
+<td>Uric.acid</td>
+<td>stężenie kwasu moczowego [µmol/l]</td>
+</tr>
+<tr class="even">
+<td>HCO3.</td>
+<td>stężenie wodorowęglanów w osoczu [mmol/l]</td>
+</tr>
+<tr class="odd">
+<td>calcium</td>
+<td>stężenie wapnia [mmol/l]</td>
+</tr>
+<tr class="even">
+<td>Amino.terminal.brain.natriuretic.peptide.precursor.NT.proBNP.</td>
+<td>stężenie NT-proBNP [pg/ml]</td>
+</tr>
+<tr class="odd">
+<td>Lactate.dehydrogenase</td>
+<td>poziom LDH [U/l]</td>
+</tr>
+<tr class="even">
+<td>platelet.large.cell.ratio.</td>
+<td>P-LCR [%]</td>
+</tr>
+<tr class="odd">
+<td>Interleukin.6</td>
+<td>stężenie interleukiny-6 [pg/ml]</td>
+</tr>
+<tr class="even">
+<td>Fibrin.degradation.products</td>
+<td>stężenie fibrynogenu [µg/ml]</td>
+</tr>
+<tr class="odd">
+<td>monocytes.count</td>
+<td>liczba monocytów [10<sup>3</sup>/µl]</td>
+</tr>
+<tr class="even">
+<td>PLT.distribution.width</td>
+<td>szerokość dystrybucji płytek krwi [%]</td>
+</tr>
+<tr class="odd">
+<td>globulin</td>
+<td>stężenie globuliny [g/l]</td>
+</tr>
+<tr class="even">
+<td>Îł.glutamyl.transpeptidase</td>
+<td>stężenie glutamylotransferazy [U/l]</td>
+</tr>
+<tr class="odd">
+<td>International.standard.ratio</td>
+<td>INR</td>
+</tr>
+<tr class="even">
+<td>basophil.count…</td>
+<td>zawartość bazofili [%]</td>
+</tr>
+<tr class="odd">
+<td>X2019.nCoV.nucleic.acid.detection</td>
+<td>wykrywanie kwasu nukleinowego 2019-nCoV</td>
+</tr>
+<tr class="even">
+<td>mean.corpuscular.hemoglobin.</td>
+<td>średnia waga hemoglobiny w czerwonej krwince [pg]</td>
+</tr>
+<tr class="odd">
+<td>Activation.of.partial.thromboplastin.time</td>
+<td>czas kaolinowo-kefalinowy [s]</td>
+</tr>
+<tr class="even">
+<td>High.sensitivity.C.reactive.protein</td>
+<td>hs-CRP [mg/l]</td>
+</tr>
+<tr class="odd">
+<td>HIV.antibody.quantification</td>
+<td>przeciwciała HIV</td>
+</tr>
+<tr class="even">
+<td>serum.sodium</td>
+<td>stężenie sodu [mmol/l]</td>
+</tr>
+<tr class="odd">
+<td>thrombocytocrit</td>
+<td>trombokryt</td>
+</tr>
+<tr class="even">
+<td>ESR</td>
+<td>odczyn Biernackiego [mm/h]</td>
+</tr>
+<tr class="odd">
+<td>glutamic.pyruvic.transaminase</td>
+<td>stężenie aminotransferazy alaninowej [U/l]</td>
+</tr>
+<tr class="even">
+<td>eGFR</td>
+<td>eGFR [ml/min/1.73m<sup>2</sup>]</td>
+</tr>
+<tr class="odd">
+<td>creatinine</td>
+<td>stężenie kreatyniny [μmol/l]</td>
+</tr>
+</tbody>
+</table>
 </div>
 <div id="czyszczenie-danych" class="section level3">
 <h3>Czyszczenie danych</h3>

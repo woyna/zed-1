@@ -22,15 +22,120 @@ todo
 
 ```{r libs, include=FALSE}
 library(dplyr)
+library(xlsx)
 ```
+
+Dane zawierają informacje o wynikach badań krwi pacjentów chorych na COVID-19, przyjętych do szpitala Tongji w Wuhan (Chiny). Zebrane zostały między 10 stycznia a 18 lutego 2020 roku.
+
+---
+todo: krótki opis co to za zbiór
+---
 
 ### Oryginalne dane
 
----
-todo: wczytanie danych
----
+```{r load_data, include=FALSE, cache=TRUE}
+blood_test <- read.xlsx('wuhan_blood_sample_data_Jan_Feb_2020.xlsx', 1, header=TRUE)
+```
+
+Wczytane dane zawierają `r nrow(blood_test)` wierszy opisanych przez `r ncol(blood_test)` atrybutów. Poniżej znajduje się krótki opis każdego atrybutu.
+
+|Nazwa atrybutu|Komentarz|
+|-|-|
+|`r colnames(blood_test[1])`|identyfikator pacjenta|
+|`r colnames(blood_test[2])`|data i czas zebrania pomiaru|
+|`r colnames(blood_test[3])`|wiek pacjenta|
+|`r colnames(blood_test[4])`|płeć pacjenta (1 - kobieta, 2 - mężczyzna)|
+|`r colnames(blood_test[5])`|data i czas przyjęcia pacjenta|
+|`r colnames(blood_test[6])`|data i czas wypisania pacjenta|
+|`r colnames(blood_test[7])`|czy zmarł? (0 - nie, 1 - tak)|
+|`r colnames(blood_test[8])`|stężenie troponiny sercowej [ng/l]|
+|`r colnames(blood_test[9])`|stężenie hemoglobiny [g/l]|
+|`r colnames(blood_test[10])`|stężenie chlorków [mmol/l]|
+|`r colnames(blood_test[11])`|czas protrombinowy [s]|
+|`r colnames(blood_test[12])`|stężenie prokalcytoniny  [ng/ml]|
+|`r colnames(blood_test[13])`|zawartość eozynofili [%]|
+|`r colnames(blood_test[14])`|stężenie interleukiny-2 [pg/ml]|
+|`r colnames(blood_test[15])`|stężenie fosfatazy alkalicznej [U/l]|
+|`r colnames(blood_test[16])`|stężenie albuminy [g/l]|
+|`r colnames(blood_test[17])`|zawartość bazofili [%]|
+|`r colnames(blood_test[18])`|stężenie interleukiny-10 [pg/ml]|
+|`r colnames(blood_test[19])`|bilirubina całkowita [µmol/l]|
+|`r colnames(blood_test[20])`|liczba płytek krwi [10<sup>3</sup>/µl]|
+|`r colnames(blood_test[21])`|zawartość monocytów [%]|
+|`r colnames(blood_test[22])`|aktywność antytrombiny [% normy]|
+|`r colnames(blood_test[23])`|stężenie interleukiny-8 [pg/ml]|
+|`r colnames(blood_test[24])`|bilirubina pośrednia [µmol/l]|
+|`r colnames(blood_test[25])`|RDW-CV [%]|
+|`r colnames(blood_test[26])`|zawartość neutrofili [%]|
+|`r colnames(blood_test[27])`|stężenie białka całkowitego [g/l]|
+|`r colnames(blood_test[28])`|przeciwciała kiły IgG/IgM|
+|`r colnames(blood_test[29])`|aktywność protrombiny [% normy]|
+|`r colnames(blood_test[30])`|HBsAg [s/c]|
+|`r colnames(blood_test[31])`|średnia objętość krwinki czerwonej (MCV) [fl]|
+|`r colnames(blood_test[32])`|hematokryt [%]|
+|`r colnames(blood_test[33])`|liczba krwinek białych [10<sup>9</sup>/l]|
+|`r colnames(blood_test[34])`|TNF alfa [pg/ml]|
+|`r colnames(blood_test[35])`|średnie stężenie hemoglobiny w erytrocytach [g/l]|
+|`r colnames(blood_test[36])`|fibrynogen [g/l]|
+|`r colnames(blood_test[37])`|stężenie interleukiny-1β [pg/ml]|
+|`r colnames(blood_test[38])`|stężenie mocznika [mmol/l]|
+|`r colnames(blood_test[39])`|liczba limfocytów [10<sup>9</sup>/l]|
+|`r colnames(blood_test[40])`|pH|
+|`r colnames(blood_test[41])`|liczba krwinek czerwonych [10<sup>12</sup>/l]|
+|`r colnames(blood_test[42])`|zawartość eozynofili|
+|`r colnames(blood_test[43])`|skorygowane stężenie wapnia [mg/dl]|
+|`r colnames(blood_test[44])`|stężenie potasu [mmol/l]|
+|`r colnames(blood_test[45])`|stężenie glukozy [mmol/l]|
+|`r colnames(blood_test[46])`|liczba neutrofili [10<sup>3</sup>/µl]|
+|`r colnames(blood_test[47])`|bilirubina bezpośrednia [µmol/l]|
+|`r colnames(blood_test[48])`|średnia objętość płytek krwi [fl]|
+|`r colnames(blood_test[49])`|stężenie ferrytyny [μg/l]|
+|`r colnames(blood_test[50])`|rozpiętość rozkładu objętości erytrocytów pacjenta [%]|
+|`r colnames(blood_test[51])`|czas trombinowy [s]|
+|`r colnames(blood_test[52])`|zawartość limfocytów [%]|
+|`r colnames(blood_test[53])`|przeciwciała HCV [log IU/ml]|
+|`r colnames(blood_test[54])`|stężenie D-dimerów [ng/ml]|
+|`r colnames(blood_test[55])`|cholesterol całkowity [mmol/l]|
+|`r colnames(blood_test[56])`|poziom aminotransferazy asparaginianowej (U/l)|
+|`r colnames(blood_test[57])`|stężenie kwasu moczowego [µmol/l]|
+|`r colnames(blood_test[58])`|stężenie wodorowęglanów w osoczu [mmol/l]|
+|`r colnames(blood_test[59])`|stężenie wapnia [mmol/l]|
+|`r colnames(blood_test[60])`|stężenie NT-proBNP [pg/ml]|
+|`r colnames(blood_test[61])`|poziom LDH [U/l]|
+|`r colnames(blood_test[62])`|P-LCR [%]|
+|`r colnames(blood_test[63])`|stężenie interleukiny-6 [pg/ml]|
+|`r colnames(blood_test[64])`|stężenie fibrynogenu [µg/ml]|
+|`r colnames(blood_test[65])`|liczba monocytów [10<sup>3</sup>/µl]|
+|`r colnames(blood_test[66])`|szerokość dystrybucji płytek krwi [%]|
+|`r colnames(blood_test[67])`|stężenie globuliny [g/l]|
+|`r colnames(blood_test[68])`|stężenie glutamylotransferazy [U/l]|
+|`r colnames(blood_test[69])`|INR|
+|`r colnames(blood_test[70])`|zawartość bazofili [%]|
+|`r colnames(blood_test[71])`|wykrywanie kwasu nukleinowego 2019-nCoV|
+|`r colnames(blood_test[72])`|średnia waga hemoglobiny w czerwonej krwince [pg]|
+|`r colnames(blood_test[73])`|czas kaolinowo-kefalinowy [s]|
+|`r colnames(blood_test[74])`|hs-CRP [mg/l]|
+|`r colnames(blood_test[75])`|przeciwciała HIV|
+|`r colnames(blood_test[76])`|stężenie sodu [mmol/l]|
+|`r colnames(blood_test[77])`|trombokryt|
+|`r colnames(blood_test[78])`|odczyn Biernackiego [mm/h]|
+|`r colnames(blood_test[79])`|stężenie aminotransferazy alaninowej [U/l]|
+|`r colnames(blood_test[80])`|eGFR [ml/min/1.73m<sup>2</sup>]|
+|`r colnames(blood_test[81])`|stężenie kreatyniny [μmol/l]|
 
 ### Czyszczenie danych
+
+```{r clean_data, include=FALSE}
+# fill patient IDs
+for(i in 1:nrow(blood_test)) {
+    if (!is.na(blood_test[i,1])) {
+        j = blood_test[i,1]
+    }
+    else {
+        blood_test[i,1] = j
+    }
+}
+```
 
 ---
 todo: czyszczenie danych
