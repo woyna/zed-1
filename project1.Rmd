@@ -25,6 +25,7 @@ library(dplyr)
 library(xlsx)
 library(ggplot2)
 library(plotly)
+library(kableExtra)
 ```
 
 Dane zawierają informacje o wynikach badań krwi pacjentów chorych na COVID-19, przyjętych do szpitala Tongji w Wuhan (Chiny). Zebrane zostały między 10 stycznia a 18 lutego 2020 roku.
@@ -131,31 +132,79 @@ for(i in 1:nrow(blood_test)) {
         counter = counter + 1
     }
 }
-
-
-blood_test$gender <- as.factor(blood_test$gender)
-blood_test$outcome <- as.factor(blood_test$outcome)
 ```
 
 W procesie czyszczenia danych uzupełnione zostały brakujące wartości ID pacjentów. Uzupełniono w ten sposób `r counter` wierszy danych.
 
-Ponadto, zmieniono typ kolumn gender i outcome z numerycznego na kategoryczny.
+Następnie pogrupowano wiersze wg ID pacjenta, uzupełniając wartości atrybutów numerycznych ich średnią na przestrzeni całej grupy. W przypadku, kiedy w danej grupie atrybut miał zawsze pustą wartość, zastąpiono go wartością NA.
 
-## Zależności między atrybutami
+Ponadto, zmieniono typ kolumn gender i outcome z numerycznego na kategoryczny.
 
 ```{r group_by, include=FALSE}
 # group by patient IDs
 blood_test_grouped <- blood_test %>% group_by(PATIENT_ID)
+
+# calculate mean of every numeric value
+blood_test_grouped <- blood_test_grouped %>%  summarize(across(where(is.numeric), ~ mean(.x, na.rm = TRUE)))
+
+# replace NaN with NA
+blood_test_grouped <- blood_test_grouped %>% replace(is.na(.), NA)
+
+# change gender and outcome attribute to binominal
+blood_test_grouped$gender <- as.factor(blood_test_grouped$gender)
+blood_test_grouped$outcome <- as.factor(blood_test_grouped$outcome)
+
 ```
 
-Poniżej zaprezentowano krótkie podsumowanie dotyczące analizowanych danych.
+## Zależności między atrybutami
 
-```{r gender_summary, results='markup'}
-gender_age_survived_summary <- blood_test_grouped %>% summarize(age = first(age), gender=first(gender), outcome=first(outcome)) %>% mutate(age_group = factor(1*(age > 35) + 1*(age > 55), labels = c('18-35', '36-55', '56+'))) %>% mutate(gender = if_else(condition = gender == 1, 'female', 'male')) %>% mutate(survived = if_else(condition = outcome == 0, 'yes', 'no')) %>% group_by(gender, age_group, survived) %>% count(name = 'count')
+Poniżej zaprezentowano zaobserwowane zależności między wybranymi atrybutami.
 
-summary_plot <- ggplot(gender_age_survived_summary, aes(x = gender, y = count, fill = survived)) + geom_col(width = 0.4) + facet_grid(. ~ age_group)
-ggplotly(summary_plot)
+### Wiek i płeć
+
+```{r gender_summary}
+gender_summary <- blood_test_grouped %>% mutate(gender = if_else(condition = gender == 1, 'female', 'male')) %>% mutate(survived = if_else(condition = outcome == 0, 'yes', 'no')) %>% group_by(gender, survived) %>% count(name = 'count') %>% arrange(desc(gender))
 ```
+
+```{r gender_summary_table, results='markup'}
+gender_summary %>% kbl() %>% kable_classic_2(full_width = F) %>% row_spec(0, bold = T)
+```
+
+```{r gender_age_summary_plot, results='markup'}
+gender_age_survived_summary <- blood_test_grouped %>% mutate(age_group = factor(1*(age > 35) + 1*(age > 55), labels = c('18-35', '36-55', '56+'))) %>% mutate(gender = if_else(condition = gender == 1, 'female', 'male')) %>% mutate(survived = if_else(condition = outcome == 0, 'yes', 'no')) %>% group_by(gender, age_group, survived) %>% count(name = 'count')
+
+gender_age_summary_plot <- ggplot(gender_age_survived_summary, aes(x = gender, y = count, fill = survived)) + geom_col(width = 0.4) + facet_grid(. ~ age_group) + theme_light()
+ggplotly(gender_age_summary_plot)
+```
+
+Z powyższego wykresu można wywnioskować, że istotnymi przy określeniu szans na przeżycie atrybutami są płeć oraz wiek pacjenta.
+
+### Neutrofile
+
+Neutrofile stanowią jedną z grup leukocytów (białych krwinek). Są istotnym składnikiem układu odpornościowego człowieka, ponieważ odpowiadają za rozpoznanie wrogich patogenów i ich neutralizację. Podwyższenie poziomu neutrofili we krwi następuje w przypadku infekcji.
+
+Normy zawartości oraz liczby neutrofili we krwi dla osoby dorosłlej (źródło: [healthline.com](https://www.healthline.com/health/neutrophils)):
+
+||Min|Max|
+|-|-|-|
+|liczba neutrocytów [tys./µl]|1|8|
+|zawartość białych krwinek [%]|45|75|
+
+```{r neutrophils}
+neutrophils <- blood_test_grouped %>% select(neutrophils..., neutrophils.count, outcome) %>% mutate(outcome = if_else(condition = outcome == 0, 'yes', 'no')) %>% rename(survived = outcome) %>% mutate(survived = factor(survived))
+
+percent_min = 45
+percent_max = 75
+count_min = 1
+count_max = 8
+```
+
+```{r neutrophils_plot, results='markup'}
+neutrophils_plot <- ggplot(neutrophils, aes(x=neutrophils.count, y=neutrophils..., color=survived)) + geom_point() + geom_hline(yintercept=range(percent_min, percent_max), linetype='dashed') + geom_vline(xintercept=range(count_min, count_max), linetype='dashed') + labs(x = 'neutrophils [%]', y='neutrophils [thousand cells/µl]') + theme_light()
+ggplotly(neutrophils_plot)
+```
+
+Na powyższym wykresie wyraźnie widać, że u pacjentów z podwyższonym poziomem neutrofili śmietelność jest wyższa.
 
 ## Klasyfikator
 
