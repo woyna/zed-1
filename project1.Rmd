@@ -98,7 +98,7 @@ Wczytane dane zawierają `r nrow(blood_test)` wierszy opisanych przez `r ncol(bl
 |`r colnames(blood_test[58])`|stężenie wodorowęglanów w osoczu [mmol/l]|
 |`r colnames(blood_test[59])`|stężenie wapnia [mmol/l]|
 |`r colnames(blood_test[60])`|stężenie NT-proBNP [pg/ml]|
-|`r colnames(blood_test[61])`|poziom LDH [U/l]|
+|`r colnames(blood_test[61])`|stężenie LDH [U/l]|
 |`r colnames(blood_test[62])`|P-LCR [%]|
 |`r colnames(blood_test[63])`|stężenie interleukiny-6 [pg/ml]|
 |`r colnames(blood_test[64])`|stężenie fibrynogenu [µg/ml]|
@@ -183,20 +183,21 @@ Z powyższego wykresu można wywnioskować, że istotnymi przy określeniu szans
 
 Neutrofile stanowią jedną z grup leukocytów (białych krwinek). Są istotnym składnikiem układu odpornościowego człowieka, ponieważ odpowiadają za rozpoznanie wrogich patogenów i ich neutralizację. Podwyższenie poziomu neutrofili we krwi następuje w przypadku infekcji.
 
-Normy zawartości oraz liczby neutrofili we krwi dla osoby dorosłlej (źródło: [healthline.com](https://www.healthline.com/health/neutrophils)):
+Normy zawartości oraz liczby neutrofili we krwi dla osoby dorosłej (źródło: [healthline.com](https://www.healthline.com/health/neutrophils)):
 
-||Min|Max|
-|-|-|-|
-|liczba neutrocytów [tys./µl]|1|8|
-|zawartość białych krwinek [%]|45|75|
-
-```{r neutrophils}
-neutrophils <- blood_test_grouped %>% select(neutrophils..., neutrophils.count, outcome) %>% mutate(outcome = if_else(condition = outcome == 0, 'yes', 'no')) %>% rename(survived = outcome) %>% mutate(survived = factor(survived))
-
+```{r neutrophils_normal_range_table, results='markup'}
 percent_min = 45
 percent_max = 75
 count_min = 1
 count_max = 8
+
+neutro_normal_range <- data.frame('empty' = c('liczba neutrocytów [tys./µl]', 'zawartość białych krwinek [%]'), 'Min' = c(count_min, percent_min), 'Max' = c(count_max, percent_max))
+
+neutro_normal_range %>% rename(' ' = empty) %>% kbl() %>% kable_classic_2(full_width = F) %>% row_spec(0, bold = T)
+```
+
+```{r neutrophils}
+neutrophils <- blood_test_grouped %>% select(neutrophils..., neutrophils.count, outcome) %>% mutate(outcome = if_else(condition = outcome == 0, 'yes', 'no')) %>% rename(survived = outcome) %>% mutate(survived = factor(survived))
 ```
 
 ```{r neutrophils_plot, results='markup'}
@@ -205,6 +206,32 @@ ggplotly(neutrophils_plot)
 ```
 
 Na powyższym wykresie wyraźnie widać, że u pacjentów z podwyższonym poziomem neutrofili śmietelność jest wyższa.
+
+### Dehydrogenaza mleczanowa (LDH)
+
+Dehydrogenaza mleczanowa (inaczej LDH) to enzym odgrywający kluczową rolę w przemianie glukozy w energię. U osób zdrowych dehydrogenaza jest umiejscowiona w cytoplazmie, a do krwi wydzielana jest jedynie w momencie uszkodzenia komórki lub wzrostu przepuszczalności błony komórkowej, czyniąc LDH ważnym markerem niewydolności narządowej, wykorzystywanym w diagnostyce chorób wewnętrznych.
+
+Normy stężenia dehydrogenazy mleczanowej we krwi dla osoby dorosłej (źródło: [University of Rochester Medical Center](https://www.urmc.rochester.edu/encyclopedia/content.aspx?contenttypeid=167&contentid=lactic_acid_dehydrogenase_blood)):
+
+```{r ldh_normal_range_table, results='markup'}
+ldh_min = 140
+ldh_max = 280
+
+ldh_normal_range <- data.frame('empty' = 'stężenie LDH [U/l]', 'Min' = ldh_min, 'Max' = ldh_max)
+
+ldh_normal_range %>% rename(' ' = empty) %>% kbl() %>% kable_classic_2(full_width = F) %>% row_spec(0, bold = T)
+```
+
+```{r ldh}
+ldh <- blood_test_grouped %>% select(Lactate.dehydrogenase, outcome, age) %>% mutate(outcome = if_else(condition = outcome == 0, 'yes', 'no')) %>% rename(survived = outcome, LDH = Lactate.dehydrogenase) %>% mutate(survived = factor(survived))
+```
+
+```{r ldh_plot, results='markup'}
+ldh_plot <- ggplot(ldh, aes(x=age, y=LDH, color=survived)) + geom_point() + geom_hline(yintercept=range(ldh_min, ldh_max), linetype='dashed') + labs(y='LDH [U/l]') + theme_light()
+ggplotly(ldh_plot)
+```
+
+Na powyższym wykresie wyraźnie widać, że u pacjentów z podwyższonym poziomem LDH śmietelność jest wyższa. 
 
 ## Klasyfikator
 
