@@ -26,6 +26,7 @@ library(xlsx)
 library(ggplot2)
 library(plotly)
 library(kableExtra)
+library(cowplot)
 ```
 
 Dane zawierają informacje o wynikach badań krwi pacjentów chorych na COVID-19, przyjętych do szpitala Tongji w Wuhan (Chiny). Zebrane zostały między 10 stycznia a 18 lutego 2020 roku.
@@ -132,15 +133,7 @@ for(i in 1:nrow(blood_test)) {
         counter = counter + 1
     }
 }
-```
 
-W procesie czyszczenia danych uzupełnione zostały brakujące wartości ID pacjentów. Uzupełniono w ten sposób `r counter` wierszy danych.
-
-Następnie pogrupowano wiersze wg ID pacjenta, uzupełniając wartości atrybutów numerycznych ich średnią na przestrzeni całej grupy. W przypadku, kiedy w danej grupie atrybut miał zawsze pustą wartość, zastąpiono go wartością NA.
-
-Ponadto, zmieniono typ kolumn gender i outcome z numerycznego na kategoryczny.
-
-```{r group_by, include=FALSE}
 # group by patient IDs
 blood_test_grouped <- blood_test %>% group_by(PATIENT_ID)
 
@@ -153,8 +146,13 @@ blood_test_grouped <- blood_test_grouped %>% replace(is.na(.), NA)
 # change gender and outcome attribute to binominal
 blood_test_grouped$gender <- as.factor(blood_test_grouped$gender)
 blood_test_grouped$outcome <- as.factor(blood_test_grouped$outcome)
-
 ```
+
+W procesie czyszczenia danych uzupełnione zostały brakujące wartości ID pacjentów. Uzupełniono w ten sposób `r counter` wierszy danych.
+
+Następnie pogrupowano wiersze wg ID pacjenta, uzupełniając wartości atrybutów numerycznych ich średnią na przestrzeni całej grupy. W przypadku, kiedy w danej grupie atrybut miał zawsze pustą wartość, zastąpiono go wartością NA.
+
+Ponadto, zmieniono typ kolumn gender i outcome z numerycznego na kategoryczny.
 
 ## Zależności między atrybutami
 
@@ -163,17 +161,17 @@ Poniżej zaprezentowano zaobserwowane zależności między wybranymi atrybutami.
 ### Wiek i płeć
 
 ```{r gender_summary}
-gender_summary <- blood_test_grouped %>% mutate(gender = if_else(condition = gender == 1, 'female', 'male')) %>% mutate(survived = if_else(condition = outcome == 0, 'yes', 'no')) %>% group_by(gender, survived) %>% count(name = 'count') %>% arrange(desc(gender))
+gender_summary <- blood_test_grouped %>% mutate(gender = if_else(condition = gender == 1, 'kobieta', 'mężczyzna')) %>% mutate(survived = if_else(condition = outcome == 0, 'tak', 'nie')) %>% group_by(gender, survived) %>% count(name = 'liczebność') %>% arrange(desc(gender))
 ```
 
 ```{r gender_summary_table, results='markup'}
-gender_summary %>% kbl() %>% kable_classic_2(full_width = F) %>% row_spec(0, bold = T)
+gender_summary %>% rename('płeć' = gender, 'przeżył' = survived) %>% kbl() %>% kable_classic_2(full_width = F) %>% row_spec(0, bold = T)
 ```
 
 ```{r gender_age_summary_plot, results='markup'}
-gender_age_survived_summary <- blood_test_grouped %>% mutate(age_group = factor(1*(age > 35) + 1*(age > 55), labels = c('18-35', '36-55', '56+'))) %>% mutate(gender = if_else(condition = gender == 1, 'female', 'male')) %>% mutate(survived = if_else(condition = outcome == 0, 'yes', 'no')) %>% group_by(gender, age_group, survived) %>% count(name = 'count')
+gender_age_survived_summary <- blood_test_grouped %>% mutate(age_group = factor(1*(age > 35) + 1*(age > 55), labels = c('18-35', '36-55', '56+'))) %>% mutate(gender = if_else(condition = gender == 1, 'kobieta', 'mężczyzna')) %>% mutate(survived = if_else(condition = outcome == 0, 'tak', 'nie')) %>% group_by(gender, age_group, survived) %>% count(name = 'liczebność') %>% rename('płeć' = gender, 'przeżył' = survived)
 
-gender_age_summary_plot <- ggplot(gender_age_survived_summary, aes(x = gender, y = count, fill = survived)) + geom_col(width = 0.4) + facet_grid(. ~ age_group) + theme_light()
+gender_age_summary_plot <- ggplot(gender_age_survived_summary, aes(x = płeć, y = liczebność, fill = przeżył)) + geom_col(width = 0.4) + facet_grid(. ~ age_group) + theme_light()
 ggplotly(gender_age_summary_plot)
 ```
 
@@ -197,11 +195,11 @@ neutro_normal_range %>% rename(' ' = empty) %>% kbl() %>% kable_classic_2(full_w
 ```
 
 ```{r neutrophils}
-neutrophils <- blood_test_grouped %>% select(neutrophils..., neutrophils.count, outcome) %>% mutate(outcome = if_else(condition = outcome == 0, 'yes', 'no')) %>% rename(survived = outcome) %>% mutate(survived = factor(survived))
+neutrophils <- blood_test_grouped %>% select(neutrophils..., neutrophils.count, outcome) %>% mutate(outcome = if_else(condition = outcome == 0, 'tak', 'nie')) %>% rename(survived = outcome) %>% mutate(survived = factor(survived)) %>% rename(przeżył = survived, liczba.neutrofili = neutrophils.count, procent.neutrofili = neutrophils...)
 ```
 
 ```{r neutrophils_plot, results='markup'}
-neutrophils_plot <- ggplot(neutrophils, aes(x=neutrophils.count, y=neutrophils..., color=survived)) + geom_point() + geom_hline(yintercept=range(percent_min, percent_max), linetype='dashed') + geom_vline(xintercept=range(count_min, count_max), linetype='dashed') + labs(x = 'neutrophils [%]', y='neutrophils [thousand cells/µl]') + theme_light()
+neutrophils_plot <- ggplot(neutrophils, aes(x=liczba.neutrofili, y=procent.neutrofili, color=przeżył)) + geom_point() + geom_hline(yintercept=range(percent_min, percent_max), linetype='dashed') + geom_vline(xintercept=range(count_min, count_max), linetype='dashed') + labs(x = 'zawartość neutrofili [%]', y='liczba neutrofili [tys. komórek/µl]') + theme_light()
 ggplotly(neutrophils_plot)
 ```
 
@@ -223,15 +221,137 @@ ldh_normal_range %>% rename(' ' = empty) %>% kbl() %>% kable_classic_2(full_widt
 ```
 
 ```{r ldh}
-ldh <- blood_test_grouped %>% select(Lactate.dehydrogenase, outcome, age) %>% mutate(outcome = if_else(condition = outcome == 0, 'yes', 'no')) %>% rename(survived = outcome, LDH = Lactate.dehydrogenase) %>% mutate(survived = factor(survived))
+ldh <- blood_test_grouped %>% select(Lactate.dehydrogenase, outcome, age) %>% mutate(outcome = if_else(condition = outcome == 0, 'tak', 'nie')) %>% rename(survived = outcome, LDH = Lactate.dehydrogenase) %>% mutate(survived = factor(survived)) %>% rename(przeżył = survived, wiek = age)
 ```
 
 ```{r ldh_plot, results='markup'}
-ldh_plot <- ggplot(ldh, aes(x=age, y=LDH, color=survived)) + geom_point() + geom_hline(yintercept=range(ldh_min, ldh_max), linetype='dashed') + labs(y='LDH [U/l]') + theme_light()
+ldh_plot <- ggplot(ldh, aes(x=wiek, y=LDH, color=przeżył)) + geom_point() + geom_hline(yintercept=range(ldh_min, ldh_max), linetype='dashed') + labs(y='LDH [U/l]') + theme_light()
 ggplotly(ldh_plot)
 ```
 
 Na powyższym wykresie wyraźnie widać, że u pacjentów z podwyższonym poziomem LDH śmietelność jest wyższa. 
+
+## Zmiana atrytbutów w czasie
+
+```{r attributes_time_change, cache=TRUE}
+attributes_time_change = data.frame(patientId = numeric(), no = numeric(), outcome = numeric(), colName = character(), value = numeric())
+noCount = -1
+patientID = -1
+
+for(i in 8:ncol(blood_test)) {
+  for (j in 1:nrow(blood_test)) {
+    if (is.na(blood_test[j,i]) | !is.numeric(blood_test[j,i])) {
+      next
+    }
+    
+    if (blood_test$PATIENT_ID[j] != patientID) {
+      noCount = 1
+    }
+    else {
+      noCount = noCount + 1  
+    }
+    
+    newRow = data.frame(blood_test$PATIENT_ID[j], noCount, blood_test$outcome[j], colnames(blood_test)[i], blood_test[j,i]) 
+    names(newRow) = colnames(attributes_time_change)
+    attributes_time_change = rbind(attributes_time_change, newRow)
+    patientID = blood_test$PATIENT_ID[j]
+  }
+}
+
+attributes_time_change <- attributes_time_change %>% mutate(survived = if_else(condition = outcome == 0, 'tak', 'nie'), colName = factor(colName))
+plots <- c()
+
+for(i in seq_along(levels(attributes_time_change$colName))) {
+  maxNo = (attributes_time_change %>% filter(colName %in% levels(colName)[i]) %>% group_by(survived) %>% summarize(maxNo = max(no, na.rm = TRUE)) %>% arrange(maxNo))[1,2]
+  
+  if (maxNo[1] < 6) {
+    next
+  }
+  
+  colPlot <- attributes_time_change %>% filter(colName %in% levels(colName)[i]) %>% filter(no <= (as.numeric(maxNo[1]) - 1)) %>% group_by(no, survived) %>% summarize(mean_val = mean(value), colName = first(colName))
+  plot <- ggplot(colPlot, aes(x=no, y=mean_val, color=survived)) + geom_line() + labs(title = colPlot$colName)
+  
+  if (!is.null(plot)) {
+    plots <- c(plots, list(plot))  
+  }
+}
+```
+
+W celu znalezienia atrybutów, których zmiana w czasie obrazuje pewien trend, wykonano następujące czynności:
+
+1. Dla każdego pacjenta zebrane zostały informacje o liczbie pomiarów każdego atrybutu.
+2. Wyliczono średnią każdego kolejnego pomiaru atrybutu i pogrupowano wyniki na pacjentów, którzy przeżyli i na pacjentów, którzy zmarli.
+3. Atrybuty, które nie miały przynajmniej sześciu pomiarów, zostały odrzucone. Uznano je za zbyt mało liczne, żeby na podstawie wyników wnioskować o trendzie dla danego atrybutu.
+4. Wygenerowano wykresy zmiany atrybutów w czasie z podziałem na pacjentów, którzy przeżyli i na pacjentów, którzy nie przeżyli, dla wszystkich atrybutów, które spełniły kryteria z poprzednich punktów.
+5. Z wygenerowanych wykresów wybrano te, które obrazowały różnice między grupami pacjentów i na których widać pewien trend.
+
+```{r meanPlots, fig.height=60, fig.width=15}
+#plot_grid(plotlist = plots, ncol = 3)
+```
+
+### Fosfataza alkaliczna
+
+Fosfataza alkaiczna (ALP) jest enzymem, który wraz z żółcią wydalany jest z wątroby do przewodu pokarmowego. Jeśli w organizmie występują problemy z wydzielaniem żółci, wówczas poziom fosfatazy we krwi wzrasta.
+
+```{r phosphatasePlot, results='markup'}
+maxNo = (attributes_time_change %>% filter(colName == 'Alkaline.phosphatase') %>% group_by(survived) %>% summarize(maxNo = max(no, na.rm = TRUE)) %>% arrange(maxNo))[1,2]
+  
+phosphatase <- attributes_time_change %>% filter(colName == 'Alkaline.phosphatase') %>% filter(no <= (as.numeric(maxNo[1]) - 1)) %>% group_by(no, survived) %>% summarize(mean_val = mean(value), colName = first(colName)) %>% rename(przeżył = survived)
+
+phosphatasePlot <- ggplot(phosphatase, aes(x=no, y=mean_val, color=przeżył)) + geom_line() + labs(x='nr próbki', y='śr. stężenie fosfatazy alkalicznej [U/l]') + theme_light()
+
+ggplotly(phosphatasePlot)
+```
+
+Wykres wykazuje średnio wyższe stężenie fosfatazy alkaicznej oraz trend rosnący dla osób, którym nie udało się przeżyć zakażenia wirusem.
+
+### Bilirubina bezpośrednia
+
+Bilirubina bezpośrednia (zwana też bilirubiną związaną lub sprzężoną) stanowi produkt degradacji części porfirynowej hemu (głównie hemoglobiny), który uwalniany jest ze zniszczonych krwinek czerwonych. Podwyższone wartości stężenia bilirubiny bezpośredniej we krwi powiązane są z problemami z wątrobą.
+
+```{r directBilirubinPlot, results='markup'}
+maxNo = (attributes_time_change %>% filter(colName == 'Direct.bilirubin') %>% group_by(survived) %>% summarize(maxNo = max(no, na.rm = TRUE)) %>% arrange(maxNo))[1,2]
+  
+directBilirubin <- attributes_time_change %>% filter(colName == 'Direct.bilirubin') %>% filter(no <= (as.numeric(maxNo[1]) - 1)) %>% group_by(no, survived) %>% summarize(mean_val = mean(value), colName = first(colName)) %>% rename(przeżył = survived)
+
+directBilirubinPlot <- ggplot(directBilirubin, aes(x=no, y=mean_val, color=przeżył)) + geom_line() + labs(x='nr próbki', y='śr. stężenie bilirubiny bezpośredniej [µmol/l]') + theme_light()
+
+ggplotly(directBilirubinPlot)
+```
+
+Wykres prezentuje stałe stężenie bilirubiny bezpośredniej u osób, którym udało się przeżyć zakażenie wirusem. Średnie stężenei bilirubiny bezpośredniej jest wyższe i ma tendencję rosnącą u osób, którym nie udało się przeżyć.
+
+### eGFR
+
+Wskaźnik eGFR stanowi jedno z podstawowych badań pozwalających na ocenę czynności nerek. Ma ono szczególną wartość w przewlekłej chorobie nerek. 
+
+```{r eGFRPlot, results='markup'}
+maxNo = (attributes_time_change %>% filter(colName == 'eGFR') %>% group_by(survived) %>% summarize(maxNo = max(no, na.rm = TRUE)) %>% arrange(maxNo))[1,2]
+  
+eGFR <- attributes_time_change %>% filter(colName == 'eGFR') %>% filter(no <= (as.numeric(maxNo[1]) - 1)) %>% group_by(no, survived) %>% summarize(mean_val = mean(value), colName = first(colName)) %>% rename(przeżył = survived)
+
+eGFRPlot <- ggplot(eGFR, aes(x=no, y=mean_val, color=przeżył)) + geom_line() + labs(x='nr próbki', y='śr. eGFR [ml/min/1.73m^2]') + theme_light()
+
+ggplotly(eGFRPlot)
+```
+
+Wykres ukazuje średnio wyższą wartość wskaźnika eGFR dla osób, którym udało się przeżyć zakażenie wirusem. U osób, które nie przeżyły zachorowania na COVID-19, wskaźnik eGFR jest niższy i ma tendencję spadkową.
+
+### hs-CRP
+
+Podstawowym zastosowaniem klinicznym badania hs-CRP (wysoko czułe białko C-reaktywne) jest ocena ryzyka chorób sercowo-naczyniowych.
+
+```{r hsCRPPlot, results='markup'}
+maxNo = (attributes_time_change %>% filter(colName == 'High.sensitivity.C.reactive.protein') %>% group_by(survived) %>% summarize(maxNo = max(no, na.rm = TRUE)) %>% arrange(maxNo))[1,2]
+  
+hsCRP <- attributes_time_change %>% filter(colName == 'High.sensitivity.C.reactive.protein') %>% filter(no <= (as.numeric(maxNo[1]) - 1)) %>% group_by(no, survived) %>% summarize(mean_val = mean(value), colName = first(colName)) %>% rename(przeżył = survived)
+
+hsCRPPlot <- ggplot(hsCRP, aes(x=no, y=mean_val, color=przeżył)) + geom_line() + labs(x='nr próbki', y='średnie hs-CRP [mg/l]') + theme_light()
+
+ggplotly(hsCRPPlot)
+```
+
+Wykres prezentuje średnio wyższy wskaźnik hs-CRP dla osób, które nie przeżyły zakażenia wirusem SARS-CoV-2.
 
 ## Klasyfikator
 
