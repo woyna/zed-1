@@ -26,7 +26,7 @@ library(xlsx)
 library(ggplot2)
 library(plotly)
 library(kableExtra)
-library(cowplot)
+library(caret)
 ```
 
 Dane zawierają informacje o wynikach badań krwi pacjentów chorych na COVID-19, przyjętych do szpitala Tongji w Wuhan (Chiny). Zebrane zostały między 10 stycznia a 18 lutego 2020 roku.
@@ -355,6 +355,111 @@ Wykres prezentuje średnio wyższy wskaźnik hs-CRP dla osób, które nie przeż
 
 ## Klasyfikator
 
----
-todo
----
+```{r classification}
+blood_test_grouped_final <- blood_test_grouped %>%
+                  select(gender, age, neutrophils..., neutrophils.count, Lactate.dehydrogenase,
+                         Alkaline.phosphatase, Direct.bilirubin, eGFR, High.sensitivity.C.reactive.protein, outcome)%>% 
+                  mutate(gender = if_else(condition = gender == 1, 'female', 'male')) %>% 
+                  mutate(outcome = if_else(condition = outcome == 0, 'tak', 'nie')) %>%
+                  rename(survived = outcome)
+
+#omit rows with NA value in any column
+blood_test_grouped_final <- na.omit(blood_test_grouped_final)
+
+#convert survived and gender attributes to binominal data type
+blood_test_grouped_final$survived = factor(blood_test_grouped_final$survived)
+blood_test_grouped_final$gender = factor(blood_test_grouped_final$gender)
+
+set.seed(23)
+
+#split data into training and testing groups
+inTraining <- 
+  createDataPartition(
+    y = blood_test_grouped_final$survived,
+    p = .75,
+    list = FALSE)
+
+training <- blood_test_grouped_final[inTraining,]
+testing <- blood_test_grouped_final[-inTraining,]
+
+#create cost matrix
+costMatrix <- matrix(c(0,1,15,0), ncol = 2)
+
+colnames(costMatrix) <- levels(training$survived)
+rownames(costMatrix) <- levels(training$survived)
+
+#use 5x2 cross-validation
+ctrl <- trainControl(
+  method = "repeatedcv",
+  number = 2,
+  repeats = 5)
+
+#use C5.0 model with cost matrix
+set.seed(10)
+fit <- train(survived ~ .,
+             data = training,
+             method = 'C5.0',
+             trControl = ctrl,
+             costs = costMatrix)
+
+#get prediction results
+set.seed(10)
+classes <- predict(fit, newdata = testing)
+confMatrix <- confusionMatrix(data = classes, testing$survived)
+```
+
+Do utworzenia klasyfikatora próbującego przewidzieć, czy dany pacjent przeżyje, wybrano 9 atrybutów opisanych w powyższym raporcie. Te atrybuty to:
+
+* płeć
+* wiek
+* zawartość neutrofili
+* liczba neutrofili
+* LDH
+* fosfataza alkaliczna
+* bilirubina bezpośrednia
+* eGFR
+* hs-CRP
+
+Danymi wykorzystanymi do wytrenowania i przetestowania klasyfikatora były średnie wartości wybranych atrybutów z badania krwi pacjentów. Odrzucono pacjentów, którzy nie mieli wyniku badania choć jednego z wytypowanych atrybutów. Zbiór ten podzielono następnie na dane uczące i testowe w stosunku 3:1.
+
+Zbiór uczący:
+
+```{r trainingSummary, results='markup'}
+trainingSummary <- training %>% group_by(survived) %>%  count(name = 'liczebność') %>% rename(przeżył = survived)
+
+trainingSummary %>% kbl() %>% kable_classic_2(full_width = F, position = "left") %>% row_spec(0, bold = T)
+```
+
+Zbiór testowy:
+
+```{r testingSummary, results='markup'}
+testingSummary <- testing %>% group_by(survived) %>%  count(name = 'liczebność') %>% rename(przeżył = survived)
+
+testingSummary %>% kbl() %>% kable_classic_2(full_width = F, position = "left") %>% row_spec(0, bold = T)
+```
+
+Wykorzystanym schematem uczenia była powtórzona ocena krzyżowa (5x2). 
+
+Na klasę pozytywną została wybrana została wartość "nie" (pacjent nie przeżył). W modelu klasyfikacyjnym wykorzystanym algorytmem został algorytm C5.0 (algorytm oparty na regułach). Dodatkowo, w celu ograniczenia w macierzy pomyłek przypadków fałszywie ujemnych (tzn. błędnego sklasyfikowania pacjenta, który nie przeżyje, jako pacjenta, któremu uda się przeżyć chorobę) zdefiniowano macierz kosztów pomyłek o następującej postaci:
+
+```{r costMatrix, results='markup'}
+costMatrix %>% kbl() %>% kable_classic_2(full_width = F) %>% row_spec(0, bold = T) %>% column_spec(1, bold = T)
+```
+
+Tak zdefiniowana macierz oznacza, że koszt sklasyfikowania przyszłego denata jako ozdrowieńca jest 15 razy większy, niż odwrotna klasyfikacja. Powinno to pomóc w maksymalizacji wskaźnika czułości (ang. *sensitivity*)
+
+Macierz pomyłek dla zbioru testowego dla zbudowanego klasyfikatora przedstawia się w następujący sposób:
+
+```{r confMatrix, results='markup'}
+dimnames(confMatrix$table)$Prediction <- c('przewidywany zgon', 'przewidywane przeżycie')
+dimnames(confMatrix$table)$Reference <- c('zgon', 'przeżycie')
+confMatrix$table %>% kbl() %>% kable_classic_2(full_width = F) %>% row_spec(0, bold = T) %>% column_spec(1, bold = T)
+```
+
+Podsumowanie podstawowych miar klasyfikacji:
+
+```{r confMatrixSummary, results='markup'}
+confMatrix$byClass %>% kbl() %>% kable_classic_2(full_width = F) %>% column_spec(1, bold = T)
+```
+
+Jak widać, czułość dla tego klasyfikatora na zbiorze testowym wynosi 100%.
