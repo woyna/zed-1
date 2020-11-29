@@ -14,9 +14,7 @@ knitr::opts_chunk$set(echo = FALSE, results='hide', message=FALSE, warning=FALSE
 
 ## Podsumowanie
 
----
-todo
----
+Raport ten przedstawia analizę wyników badań krwi pacjentów z szpitala Tongji w Wuhan chorych na COVID-19. W toku tej analizy odkryto silną korelację pomiędzy wiekiem i płcią pacjenta, a przeżywalnością choroby. Korelacja ta implikuje, że mężczyźni oraz młodzi ludzie mają większą szansę na przeżycie choroby. Kolejnym istotnym czynnikiem okazała się zawartość neutrofili we krwi. Zarówno liczba neutrofili, jak i procentowa zawartość w stosunku do wszystkich leukocytów, mogą służyć do predykcji stanu pacjenta. Podwyższony poziom neutrofili oznaczał mniejszą szansę na przeżycie. Następnym wskaźnikiem, który wpływa na przeżywalność, okazało się stężenie dehydrogenazy mleczanowej (LDH). Poziom LDH ponad normę zauważony był u większości pacjentów, którzy nie przeżyli zakażenia wirusem. W kolejnym kroku analizy zbadano zmienność wskaźników w czasie. W przypadku stężenia fosfotazy alkaicznej, stężenia bilirubiny bezpośredniej oraz hs-CRP zauważono średnio wyższy poziom oraz trend rosnący u pacjentów, którzy nie przeżyli. Z kolei poziom eGFR był średnio wyższy u pacjentów, którzy przeżyli zachorowanie na COVID-19. Wymienione wyżej atrybuty wykorzystane zostały do budowy klasyfikatora, określającego czy dany pacjent przeżyje zakażenie wirusem. Algorytmem zastosowanym w klasyfikatorze był algorytm C5.0 wsparty macierzą kosztów, zmniejszającą szansę na błędne sklasyfikowanie pacjenta chorego jako zdrowego. Dla zbioru testowego udało się osiągnąć precyzję na poziomie 93% i czułość na poziomie 100%.
 
 ## Opis zbioru danych
 
